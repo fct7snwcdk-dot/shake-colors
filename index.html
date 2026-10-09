@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shake Colors</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      font-family: Arial, sans-serif;
+      background: #171717;
+      color: white;
+    }
+
+    h1 {
+      font-size: 28px;
+    }
+
+    .circles {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      max-width: 340px;
+    }
+
+    .circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #ff5252;
+      transition: background-color 0.2s;
+    }
+
+    button {
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Shake Colors</h1>
+
+  <div class="circles">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+  </div>
+
+  <button id="activate">Activer les secousses</button>
+
+  <script>
+    const circles = document.querySelectorAll(".circle");
+    const button = document.querySelector("#activate");
+
+    function changeColors() {
+      circles.forEach(circle => {
+        circle.style.backgroundColor =
+          `hsl(${Math.random() * 360}, 80%, 60%)`;
+      });
+    }
+
+    // Tester les couleurs en touchant le bouton.
+    button.addEventListener("click", changeColors);
+
+    // Détecter les secousses du téléphone.
+    let lastShake = 0;
+
+    async function activateSensor() {
+      if (!("DeviceMotionEvent" in window)) {
+        alert("Capteur de mouvement indisponible.");
+        return;
+      }
+
+      try {
+        if (typeof DeviceMotionEvent.requestPermission === "function") {
+          const permission =
+            await DeviceMotionEvent.requestPermission();
+
+          if (permission !== "granted") {
+            alert("Autorisation du capteur refusée.");
+            return;
+          }
+        }
+
+        window.addEventListener("devicemotion", event => {
+          const acceleration =
+            event.accelerationIncludingGravity;
+
+          if (!acceleration) return;
+
+          const x = acceleration.x || 0;
+          const y = acceleration.y || 0;
+          const z = acceleration.z || 0;
+
+          const intensity = Math.sqrt(x*x + y*y + z*z);
+          const now = Date.now();
+
+          if (intensity > 23 && now - lastShake > 700) {
+            lastShake = now;
+            changeColors();
+          }
+        });
+
+        button.textContent = "Secoue ton téléphone !";
+      } catch (error) {
+        alert("Impossible d'activer le capteur.");
+      }
+    }
+
+    button.addEventListener("click", activateSensor);
+  </script>
+
+</body>
+</html>
